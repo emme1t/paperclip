@@ -110,6 +110,9 @@ describeEmbeddedPostgres("Execution-backed task presentation", () => {
     expect(await svc.list(f.companyId, { displayStatus: "monitoring", listProjection: "index" })).toEqual([expect.objectContaining({ id: f.issueId, status: "in_progress", displayStatus: "monitoring" })]);
     expect(await svc.count(f.companyId, { displayStatus: "monitoring" })).toBe(1);
     const app = routeApp(ctx.db, f.actor, issueRoutes);
+    const compact = await request(app).get(`/api/companies/${f.companyId}/issues`)
+      .query({ view: "compact", displayStatus: "monitoring" }).expect(200);
+    expect(compact.body).toEqual([expect.objectContaining({ id: f.issueId, status: "in_progress", displayStatus: "monitoring" })]);
     const summary = await request(app).get(`/api/companies/${f.companyId}/issues/summaries?ids=${f.issueId}`).expect(200);
     expect(summary.body[0]).toMatchObject({ status: "in_progress", displayStatus: "monitoring" });
     const result = await companySearchService(ctx.db).search(f.companyId, companySearchQuerySchema.parse({ q: "deployment", displayStatus: "monitoring" }));
